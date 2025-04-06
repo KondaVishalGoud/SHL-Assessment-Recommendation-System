@@ -1,12 +1,23 @@
-streamlit==1.44.1
+# Web framework
+Flask==3.0.3
 requests==2.32.3
+python-dotenv==1.1.0
+
+# HTML parsing (if needed)
 beautifulsoup4==4.13.3
+
+# NLP & Embedding Models
 sentence-transformers==4.0.2
 scikit-learn==1.6.1
 faiss-cpu==1.10.0
-torch==2.6.0
-python-dotenv==1.1.0
+
+# Safe CPU-only PyTorch
+torch==2.0.1+cpu
+torchvision==0.15.2+cpu
+-f https://download.pytorch.org/whl/torch_stable.html
+
+# Gemini SDK for AI-powered enhancements
 google-generativeai==0.8.4
+
+# Transformers (optional, if used in rerank/fallback)
 transformers==4.41.0
-fastapi
-uvicorn

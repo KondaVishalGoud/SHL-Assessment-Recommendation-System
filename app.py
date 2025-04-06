@@ -93,7 +93,24 @@ if st.button("🔍 Recommend Assessments"):
                 name = item.get('Assessment Name', 'Untitled')
                 url = item.get('URL', '#')
 
-                st.markdown(f"""<h3>{idx}. <a href="{url}" target="_blank" style="text-decoration: none;">{name}</a></h3>""", unsafe_allow_html=True)
+                from streamlit.components.v1 import html
+
+                assessment_name = item.get('Assessment Name', 'Untitled')
+                assessment_url = item.get('URL', '#')
+
+                # Inline button that looks like a link
+                html(f"""
+                    <div style="margin-bottom: 0.5em">
+                        <a href="{assessment_url}" target="_blank" style="
+                        text-decoration: none;
+                        color: #1f77b4;
+                        font-size: 20px;
+                        font-weight: 600;
+                        font-family: 'sans-serif';
+                        ">{idx}. {assessment_name}</a>
+                    </div>
+                    """, height=30)
+
 
                 st.markdown(f"- **Job Levels**: {item.get('Job Levels', 'N/A')}")
 

@@ -13,7 +13,7 @@ MAPPING_PATH = "index_mapping.pkl"
 
 # Load model
 print("📥 Loading model: all-MiniLM-L6-v2")
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("local_model")
 
 # Preprocessing utility (for embeddings only)
 def preprocess(text):

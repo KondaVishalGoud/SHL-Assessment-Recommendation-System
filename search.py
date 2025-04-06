@@ -13,7 +13,7 @@ INDEX_PATH = "faiss_index.index"
 MAPPING_PATH = "index_mapping.pkl"
 
 # Load model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("local_model")
 
 # Cache
 _index = None

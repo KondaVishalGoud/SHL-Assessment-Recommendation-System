@@ -1,0 +1,7 @@
+streamlit
+faiss-cpu
+sentence-transformers
+scikit-learn
+bs4
+requests
+google-generativeai 

@@ -15,6 +15,8 @@ class QueryRequest(BaseModel):
 @app.post("/recommend")
 def recommend_assessments(req: QueryRequest):
     try:
+        print(f"Received query: {req.query}")  # Add this line
+
         response = search(
             query=req.query,
             top_k=req.top_k,
@@ -22,6 +24,9 @@ def recommend_assessments(req: QueryRequest):
             do_rerank=req.rerank,
             include_explanations=req.explanations
         )
+
+        print("Search complete")  # Add this line
+
         return {
             "status": "success",
             "rewritten_query": response.get("rewritten_query", ""),
@@ -29,4 +34,6 @@ def recommend_assessments(req: QueryRequest):
             "fallback": response.get("fallback", None)
         }
     except Exception as e:
+        print(f"Error occurred: {e}")  # Add this line
         return {"status": "error", "message": str(e)}
+

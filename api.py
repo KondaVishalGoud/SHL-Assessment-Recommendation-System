@@ -1,49 +1,47 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from flask import Flask, request, jsonify
 from search import search
 import os
-import uvicorn
 
-app = FastAPI()
+app = Flask(__name__)
 
-# ✅ Root endpoint for health check / visibility
-@app.get("/")
-def root():
-    return {"message": "FastAPI backend is running 🚀"}
+@app.route("/")
+def home():
+    return "✅ SHL Assessment Recommendation API (Flask) is running!"
 
-class QueryRequest(BaseModel):
-    query: str
-    top_k: int = 10
-    rerank: bool = True
-    fallback: bool = True
-    explanations: bool = False
-
-@app.post("/recommend")
-def recommend_assessments(req: QueryRequest):
+@app.route("/recommend", methods=["POST"])
+def recommend_assessments():
     try:
-        print(f"Received query: {req.query}")
+        data = request.get_json()
+        query = data.get("query")
+        top_k = int(data.get("top_k", 10))
+        rerank = data.get("rerank", True)
+        fallback = data.get("fallback", True)
+        explanations = data.get("explanations", False)
+
+        print(f"Received query: {query}")
 
         response = search(
-            query=req.query,
-            top_k=req.top_k,
+            query=query,
+            top_k=top_k,
             debug=False,
-            do_rerank=req.rerank,
-            include_explanations=req.explanations
+            do_rerank=rerank,
+            include_explanations=explanations
         )
 
         print("Search complete")
 
-        return {
+        return jsonify({
             "status": "success",
             "rewritten_query": response.get("rewritten_query", ""),
             "results": response.get("results", []),
             "fallback": response.get("fallback", None)
-        }
+        })
+
     except Exception as e:
         print(f"Error occurred: {e}")
-        return {"status": "error", "message": str(e)}
+        return jsonify({"status": "error", "message": str(e)})
 
-# Required for Render.com (detects PORT and binds correctly)
+# For Render dynamic port
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("api:app", host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

@@ -1,4 +1,3 @@
-# api.py
 from fastapi import FastAPI
 from pydantic import BaseModel
 from search import search
@@ -6,6 +5,11 @@ import os
 import uvicorn
 
 app = FastAPI()
+
+# ✅ Root endpoint for health check / visibility
+@app.get("/")
+def root():
+    return {"message": "FastAPI backend is running 🚀"}
 
 class QueryRequest(BaseModel):
     query: str

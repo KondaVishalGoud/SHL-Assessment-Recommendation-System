@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: shl-assessment-api
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python api.py
-    plan: free

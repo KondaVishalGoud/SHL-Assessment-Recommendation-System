@@ -1,5 +1,5 @@
 # Web framework
-Flask==3.0.3
+streamlit==1.44.1
 requests==2.32.3
 python-dotenv==1.1.0
 
@@ -21,3 +21,5 @@ google-generativeai==0.8.4
 
 # Transformers (optional, if used in rerank/fallback)
 transformers==4.41.0
+fastapi
+uvicorn

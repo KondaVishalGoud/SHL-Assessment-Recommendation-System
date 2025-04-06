@@ -1,60 +1,49 @@
-from flask import Flask, request, jsonify, render_template_string
+from fastapi import FastAPI
+from pydantic import BaseModel
 from search import search
+import os
+import uvicorn
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Simple HTML form template
-FORM_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head><title>Assessment Recommendation</title></head>
-<body>
-  <h2>Enter your hiring need or query:</h2>
-  <form method="post">
-    <input type="text" name="query" placeholder="e.g. Java developer, 30 mins, entry level" size="50" required>
-    <br><br>
-    <input type="submit" value="Get Recommendations">
-  </form>
-</body>
-</html>
-"""
+# ✅ Root endpoint for health check / visibility
+@app.get("/")
+def root():
+    return {"message": "FastAPI backend is running 🚀"}
 
-@app.route("/")
-def home():
-    return "✅ Flask API is running!"
+class QueryRequest(BaseModel):
+    query: str
+    top_k: int = 10
+    rerank: bool = True
+    fallback: bool = True
+    explanations: bool = False
 
-@app.route("/recommend", methods=["GET", "POST"])
-def recommend():
-    if request.method == "GET":
-        return render_template_string(FORM_TEMPLATE)
-    
-    if request.method == "POST":
-        query = request.form.get("query") or request.json.get("query")
-        top_k = int(request.form.get("top_k", 10)) if request.form else 10
-        rerank = True
-        explanations = False
+@app.post("/recommend")
+def recommend_assessments(req: QueryRequest):
+    try:
+        print(f"Received query: {req.query}")
 
-        if not query:
-            return jsonify({"status": "error", "message": "Query is required"}), 400
+        response = search(
+            query=req.query,
+            top_k=req.top_k,
+            debug=False,
+            do_rerank=req.rerank,
+            include_explanations=req.explanations
+        )
 
-        try:
-            response = search(
-                query=query,
-                top_k=top_k,
-                debug=False,
-                do_rerank=rerank,
-                include_explanations=explanations
-            )
-            return jsonify({
-                "status": "success",
-                "rewritten_query": response.get("rewritten_query", ""),
-                "results": response.get("results", []),
-                "fallback": response.get("fallback", None)
-            })
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)}), 500
+        print("Search complete")
 
+        return {
+            "status": "success",
+            "rewritten_query": response.get("rewritten_query", ""),
+            "results": response.get("results", []),
+            "fallback": response.get("fallback", None)
+        }
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return {"status": "error", "message": str(e)}
+
+# Required for Render.com (detects PORT and binds correctly)
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+    uvicorn.run("api:app", host="0.0.0.0", port=port)

@@ -8,32 +8,46 @@ from sklearn.preprocessing import normalize
 
 from gemini_booster import rewrite_query, rerank_results, generate_fallback, explain_reasoning
 
-# Paths
+# === Paths ===
 INDEX_PATH = "faiss_index.index"
 MAPPING_PATH = "index_mapping.pkl"
 
-# Load model
-model = SentenceTransformer("local_model")
+# === Load Model Safely ===
+try:
+    model = SentenceTransformer("local_model")
+except Exception as e:
+    print(f"[ERROR] Failed to load SentenceTransformer model: {e}")
+    model = None
 
-# Cache
+# === Cache ===
 _index = None
 _metadata = None
 
+# === Preprocess Query ===
 def preprocess(text):
     text = text.lower()
     text = re.sub(r'[^a-z0-9\s]', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+# === Load Index + Metadata ===
 def load_index_and_metadata():
     global _index, _metadata
+
     if _index is None or _metadata is None:
+        if not os.path.exists(INDEX_PATH):
+            raise FileNotFoundError(f"FAISS index not found at {INDEX_PATH}")
+        if not os.path.exists(MAPPING_PATH):
+            raise FileNotFoundError(f"Mapping file not found at {MAPPING_PATH}")
+
         _index = faiss.read_index(INDEX_PATH)
+
         with open(MAPPING_PATH, "rb") as f:
             _metadata = pickle.load(f)
+
     return _index, _metadata
 
-# Filter helpers
+# === Filters Setup ===
 TEST_TYPE_MAP = {
     "ability": "Ability & Aptitude",
     "aptitude": "Ability & Aptitude",
@@ -88,8 +102,24 @@ def passes_filters(record, filters):
 
     return True
 
+# === Main Search ===
 def search(query, top_k=10, debug=False, include_explanations=False, do_rerank=True):
-    index, metadata = load_index_and_metadata()
+    try:
+        index, metadata = load_index_and_metadata()
+    except Exception as e:
+        print(f"[ERROR] Index/Metadata load failed: {e}")
+        return {
+            "rewritten_query": query,
+            "results": [],
+            "fallback": f"Could not load index or metadata: {e}"
+        }
+
+    if not model:
+        return {
+            "rewritten_query": query,
+            "results": [],
+            "fallback": "SentenceTransformer model not loaded."
+        }
 
     rewritten_query = rewrite_query(query)
     if debug:
@@ -99,13 +129,12 @@ def search(query, top_k=10, debug=False, include_explanations=False, do_rerank=T
     if debug:
         print("🔍 Extracted Filters:", filters)
 
-    query_embedding = model.encode([preprocess(rewritten_query)], show_progress_bar=False)
-    query_embedding = normalize(query_embedding, axis=1)
-
     try:
+        query_embedding = model.encode([preprocess(rewritten_query)], show_progress_bar=False)
+        query_embedding = normalize(query_embedding, axis=1)
         distances, indices = index.search(query_embedding, top_k * 5)
     except Exception as e:
-        print("FAISS search failed:", e)
+        print(f"[ERROR] FAISS search failed: {e}")
         return {
             "rewritten_query": rewritten_query,
             "results": [],
@@ -134,18 +163,24 @@ def search(query, top_k=10, debug=False, include_explanations=False, do_rerank=T
         }
 
     if do_rerank:
-        results = rerank_results(rewritten_query, results)
+        try:
+            results = rerank_results(rewritten_query, results)
+        except Exception as e:
+            print(f"[WARN] Rerank failed: {e}")
 
     if include_explanations:
         for r in results:
-            r["LLM Explanation"] = explain_reasoning(rewritten_query, r)
+            try:
+                r["LLM Explanation"] = explain_reasoning(rewritten_query, r)
+            except Exception as e:
+                r["LLM Explanation"] = f"Error generating explanation: {e}"
 
     return {
         "rewritten_query": rewritten_query,
         "results": results[:top_k]
     }
 
-# For CLI usage
+# === CLI Debug Mode ===
 if __name__ == "__main__":
     q = input("Enter your hiring need or requirement: ")
     res = search(q, top_k=5, debug=True, include_explanations=True)

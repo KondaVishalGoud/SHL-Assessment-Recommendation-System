@@ -90,7 +90,12 @@ if st.button("🔍 Recommend Assessments"):
         if results:
             st.success(f"🎯 Top {len(results)} relevant assessments:")
             for idx, item in enumerate(results[:top_k], 1):
-                st.markdown(f"### {idx}. [{item.get('Assessment Name', 'Untitled')}]({item.get('URL', '#')})")
+                name = item.get('Assessment Name', 'Untitled')
+                url = item.get('URL', '#')
+
+                st.subheader(f"{idx}. {name}")
+                st.link_button("🔗 View Assessment on SHL", url)
+
                 st.markdown(f"- **Job Levels**: {item.get('Job Levels', 'N/A')}")
 
                 test_type_raw = item.get('Test Type(s)', 'N/A')
@@ -107,6 +112,7 @@ if st.button("🔍 Recommend Assessments"):
                 if show_explanations and "LLM Explanation" in item:
                     st.markdown(f"🧠 **Gemini Explanation:**\n> {item['LLM Explanation']}")
                 st.markdown("---")
+
 
         elif fallback_msg and enable_fallback:
             st.warning(f"🤖 {fallback_msg}")

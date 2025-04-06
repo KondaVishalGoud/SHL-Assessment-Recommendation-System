@@ -93,8 +93,7 @@ if st.button("🔍 Recommend Assessments"):
                 name = item.get('Assessment Name', 'Untitled')
                 url = item.get('URL', '#')
 
-                st.subheader(f"{idx}. {name}")
-                st.link_button("🔗 View Assessment on SHL", url)
+                st.markdown(f"""<h3>{idx}. <a href="{url}" target="_blank" style="text-decoration: none;">{name}</a></h3>""", unsafe_allow_html=True)
 
                 st.markdown(f"- **Job Levels**: {item.get('Job Levels', 'N/A')}")
 

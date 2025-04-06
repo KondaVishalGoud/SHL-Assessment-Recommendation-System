@@ -1,3 +1,4 @@
+python==3.10.11
 streamlit==1.44.1
 requests==2.32.3
 beautifulsoup4==4.13.3

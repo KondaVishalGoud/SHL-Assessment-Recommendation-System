@@ -10,3 +10,4 @@ google-generativeai==0.8.4
 transformers==4.41.0
 requests==2.32.3
 beautifulsoup4==4.13.3
+numpy==1.26.4

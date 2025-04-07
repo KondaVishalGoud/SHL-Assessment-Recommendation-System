@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: shl-recommender
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python api.py
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+    region: oregon
+    plan: free

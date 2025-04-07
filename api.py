@@ -42,8 +42,9 @@ def recommend_assessments(req: QueryRequest):
     except Exception as e:
         print(f"Error occurred: {e}")
         return {"status": "error", "message": str(e)}
-
-# Required for Render.com (detects PORT and binds correctly)
+    
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("api:app", host="0.0.0.0", port=port)
+
+

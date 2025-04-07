@@ -1,12 +1,11 @@
-streamlit==1.44.1
-requests==2.32.3
-beautifulsoup4==4.13.3
+fastapi==0.110.1
+uvicorn==0.29.0
 sentence-transformers==4.0.2
 scikit-learn==1.6.1
 faiss-cpu==1.10.0
-torch==2.6.0
+torch==2.2.1+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 python-dotenv==1.1.0
 google-generativeai==0.8.4
 transformers==4.41.0
-fastapi
-uvicorn
+requests==2.32.3

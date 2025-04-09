@@ -6,17 +6,18 @@ import uvicorn
 
 app = FastAPI()
 
-# ✅ Root endpoint for health check / visibility
+# ✅ Health check endpoint
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+# ✅ Root endpoint (optional)
 @app.get("/")
 def root():
-    return {"message": "FastAPI backend is running 🚀"}
+    return {"message": "FastAPI backend is running"}
 
 class QueryRequest(BaseModel):
     query: str
-    top_k: int = 10
-    rerank: bool = True
-    fallback: bool = True
-    explanations: bool = False
 
 @app.post("/recommend")
 def recommend_assessments(req: QueryRequest):
@@ -25,26 +26,30 @@ def recommend_assessments(req: QueryRequest):
 
         response = search(
             query=req.query,
-            top_k=req.top_k,
+            top_k=10,
             debug=False,
-            do_rerank=req.rerank,
-            include_explanations=req.explanations
+            do_rerank=True,
+            include_explanations=False
         )
 
-        print("Search complete")
+        results = []
+        for record in response.get("results", []):
+            results.append({
+                "url": record.get("URL", ""),
+                "adaptive_support": record.get("Adaptive Support", "No"),
+                "description": record.get("Description", ""),
+                "duration": int(record.get("Duration", 0)),
+                "remote_support": record.get("Remote Testing Support", "No"),
+                "test_type": record.get("Test Type(s)", [])
+            })
 
         return {
-            "status": "success",
-            "rewritten_query": response.get("rewritten_query", ""),
-            "results": response.get("results", []),
-            "fallback": response.get("fallback", None)
+            "recommended_assessments": results
         }
     except Exception as e:
         print(f"Error occurred: {e}")
         return {"status": "error", "message": str(e)}
-    
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("api:app", host="0.0.0.0", port=port)
-
-
